@@ -1,0 +1,33 @@
+# Build artifacts
+build/
+out/
+cmake-build-*/
+
+# IDE
+.vs/
+.vscode/
+*.vcxproj*
+*.sln
+.idea/
+
+# Compiled
+*.obj
+*.o
+*.exe
+*.dll
+*.lib
+*.so
+*.dylib
+*.a
+
+# EOS SDK (download separately)
+external/eos-sdk/Include/
+external/eos-sdk/Lib/
+external/eos-sdk/Bin/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
