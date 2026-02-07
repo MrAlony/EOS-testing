@@ -63,14 +63,28 @@ external/eos-sdk/
     └── EOSSDK-Win64-Shipping.dll
 ```
 
-### 2. Configure Your Product
+### 2. Configure Your Credentials
 
-Create an application at https://dev.epicgames.com/portal and get:
-- Product ID
-- Sandbox ID  
-- Deployment ID
-- Client ID
-- Client Secret
+1. Create an application at https://dev.epicgames.com/portal
+2. Get your credentials:
+   - Product ID
+   - Sandbox ID  
+   - Deployment ID
+   - Client ID
+   - Client Secret
+
+3. Set up the credentials file:
+   ```bash
+   # Copy the template
+   cp config/credentials.hpp.example config/credentials.hpp
+   
+   # Edit with your credentials
+   # (use your preferred editor)
+   ```
+
+4. Fill in your values in `config/credentials.hpp`
+
+> **Note:** `credentials.hpp` is in `.gitignore` and will never be committed. Only the `.example` template is tracked.
 
 ### 3. Build
 
