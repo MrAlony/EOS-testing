@@ -2,10 +2,13 @@
  * EOS Testing - Test Client
  * 
  * A simple test application that demonstrates all EOS functionality.
- * Runs through authentication, lobby, P2P, and voice chat in stub mode.
+ * Runs through authentication, lobby, P2P, and voice chat.
+ * 
+ * SETUP: Edit config/credentials.hpp with your Epic Developer Portal credentials!
  */
 
 #include "eos_testing/eos_testing.hpp"
+#include "../config/credentials.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -55,6 +58,7 @@ void test_lobby() {
     
     CreateLobbyOptions options;
     options.lobby_name = "Test Game Room";
+    options.bucket_id = "deathmatch:global";  // Required: game_mode:region format
     options.max_members = 8;
     options.permission = LobbyPermission::PublicAdvertised;
     options.attributes["game_mode"] = "deathmatch";
@@ -90,7 +94,7 @@ void test_lobby() {
         std::cout << "\nSearching for public lobbies...\n";
         
         bool search_complete = false;
-        lobby.search_lobbies(10, {}, [&](bool success, const std::vector<LobbySearchResult>& results) {
+        lobby.search_lobbies("deathmatch:global", 10, {}, [&](bool success, const std::vector<LobbySearchResult>& results) {
             if (success) {
                 std::cout << "Found " << results.size() << " lobbies:\n";
                 for (const auto& result : results) {
@@ -297,17 +301,34 @@ int main() {
     std::cout << "    EOS Testing - Proof of Concept Client\n";
     std::cout << "==============================================\n";
     
+    // Check if credentials are configured
+    if (!config::credentials_configured()) {
+        std::cout << "\n";
+        std::cout << "ERROR: Credentials not configured!\n";
+        std::cout << "\n";
+        std::cout << "Please edit config/credentials.hpp with your Epic Developer Portal credentials.\n";
+        std::cout << "See the guide below:\n";
+        std::cout << "\n";
+        std::cout << "1. Go to https://dev.epicgames.com/portal\n";
+        std::cout << "2. Create/select your product\n";
+        std::cout << "3. Go to Product Settings to find your IDs\n";
+        std::cout << "4. Create a Client with 'Peer2Peer' policy type\n";
+        std::cout << "5. Copy all IDs to config/credentials.hpp\n";
+        std::cout << "\n";
+        std::cout << "Running in STUB MODE for demo...\n";
+    }
+    
     // Initialize platform
     print_header("Initializing EOS Platform");
     
     PlatformConfig config;
-    config.product_name = "EOS Test Project";
-    config.product_version = "1.0.0";
-    config.product_id = "your_product_id_here";
-    config.sandbox_id = "your_sandbox_id_here";
-    config.deployment_id = "your_deployment_id_here";
-    config.client_id = "your_client_id_here";
-    config.client_secret = "your_client_secret_here";
+    config.product_name = config::PRODUCT_NAME;
+    config.product_version = config::PRODUCT_VERSION;
+    config.product_id = config::PRODUCT_ID;
+    config.sandbox_id = config::SANDBOX_ID;
+    config.deployment_id = config::DEPLOYMENT_ID;
+    config.client_id = config::CLIENT_ID;
+    config.client_secret = config::CLIENT_SECRET;
     
     bool init_complete = false;
     eos_testing::initialize(config, [&](bool success, const std::string& message) {
@@ -342,9 +363,17 @@ int main() {
     eos_testing::shutdown();
     
     std::cout << "All tests complete!\n";
-    std::cout << "\nNote: This ran in STUB MODE because EOS SDK was not found.\n";
-    std::cout << "To use real EOS, download SDK from https://dev.epicgames.com/portal\n";
-    std::cout << "and place it in ./external/eos-sdk/\n";
+    
+#ifdef EOS_STUB_MODE
+    std::cout << "\nNote: This ran in STUB MODE.\n";
+    std::cout << "SDK found but credentials may not be configured.\n";
+#else
+    std::cout << "\nRan with REAL EOS SDK!\n";
+#endif
+    
+    if (!config::credentials_configured()) {
+        std::cout << "\nReminder: Edit config/credentials.hpp with real credentials for production use.\n";
+    }
     
     return 0;
 }

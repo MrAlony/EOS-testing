@@ -14,6 +14,18 @@ AuthManager& AuthManager::instance() {
 }
 
 void AuthManager::login_device_id(const std::string& display_name, AuthCallback callback) {
+    login_device_id_with_model(display_name, "PC", false, callback);
+}
+
+void AuthManager::login_device_id_with_model(const std::string& display_name, const std::string& device_model, AuthCallback callback) {
+    // For backward compatibility, don't delete device ID by default
+    login_device_id_with_model(display_name, device_model, false, callback);
+}
+
+void AuthManager::login_device_id_with_model(const std::string& display_name, 
+                                              const std::string& device_model,
+                                              bool delete_existing,
+                                              AuthCallback callback) {
     if (m_logged_in) {
         AuthResult result;
         result.success = false;
@@ -24,9 +36,10 @@ void AuthManager::login_device_id(const std::string& display_name, AuthCallback 
     
     m_pending_callback = callback;
     m_display_name = display_name;
+    m_device_model = device_model;
     
 #ifdef EOS_STUB_MODE
-    std::cout << "[EOS-STUB] Device ID login for: " << display_name << "\n";
+    std::cout << "[EOS-STUB] Device ID login for: " << display_name << " (model: " << device_model << ")\n";
     
     // Simulate successful login
     m_logged_in = true;
@@ -43,8 +56,13 @@ void AuthManager::login_device_id(const std::string& display_name, AuthCallback 
     
     if (callback) callback(result);
 #else
-    // Create device ID first, then connect
-    create_device_id(display_name, callback);
+    if (delete_existing) {
+        // Delete existing device ID first to force creation of new one
+        delete_device_id_then_create(display_name, callback);
+    } else {
+        // Create device ID first, then connect
+        create_device_id(display_name, callback);
+    }
 #endif
 }
 
@@ -232,10 +250,12 @@ void AuthManager::create_device_id(const std::string& display_name, AuthCallback
         return;
     }
     
-    // Create device ID
+    // Create device ID with specific model
     EOS_Connect_CreateDeviceIdOptions create_options = {};
     create_options.ApiVersion = EOS_CONNECT_CREATEDEVICEID_API_LATEST;
-    create_options.DeviceModel = "PC";
+    create_options.DeviceModel = m_device_model.c_str();
+    
+    std::cout << "[EOS] Creating Device ID with model: " << m_device_model << "\n";
     
     m_pending_callback = callback;
     m_display_name = display_name;
@@ -299,6 +319,37 @@ void AuthManager::create_device_id(const std::string& display_name, AuthCallback
                 result.error_message = "Failed to create device ID";
                 if (self->m_pending_callback) self->m_pending_callback(result);
             }
+        }
+    );
+#endif
+}
+
+void AuthManager::delete_device_id_then_create(const std::string& display_name, AuthCallback callback) {
+#ifndef EOS_STUB_MODE
+    auto platform = Platform::instance().get_handle();
+    if (!platform) {
+        AuthResult result;
+        result.success = false;
+        result.error_message = "Platform not initialized";
+        if (callback) callback(result);
+        return;
+    }
+    
+    std::cout << "[EOS] Deleting existing Device ID to create new identity...\n";
+    
+    EOS_Connect_DeleteDeviceIdOptions delete_options = {};
+    delete_options.ApiVersion = EOS_CONNECT_DELETEDEVICEID_API_LATEST;
+    
+    m_pending_callback = callback;
+    m_display_name = display_name;
+    
+    EOS_Connect_DeleteDeviceId(EOS_Platform_GetConnectInterface(platform), &delete_options, this,
+        [](const EOS_Connect_DeleteDeviceIdCallbackInfo* data) {
+            auto* self = static_cast<AuthManager*>(data->ClientData);
+            
+            // Whether delete succeeded or not (might not exist), try to create new one
+            std::cout << "[EOS] Device ID delete result: " << (int)data->ResultCode << " - now creating new...\n";
+            self->create_device_id(self->m_display_name, self->m_pending_callback);
         }
     );
 #endif

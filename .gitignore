@@ -25,6 +25,9 @@ external/eos-sdk/Include/
 external/eos-sdk/Lib/
 external/eos-sdk/Bin/
 
+# Credentials (NEVER commit real credentials!)
+config/credentials.hpp
+
 # Logs
 *.log
 

@@ -76,6 +76,31 @@ public:
     void login_device_id(const std::string& display_name, AuthCallback callback);
     
     /**
+     * Login with Device ID using a specific device model.
+     * 
+     * @param display_name Display name for this user
+     * @param device_model Device model identifier (e.g., "HostPC", "ClientPC")
+     * @param callback Called when login completes
+     */
+    void login_device_id_with_model(const std::string& display_name, 
+                                     const std::string& device_model,
+                                     AuthCallback callback);
+    
+    /**
+     * Login with Device ID, optionally deleting existing device ID first.
+     * Use delete_existing=true to create a new identity on the same machine.
+     * 
+     * @param display_name Display name for this user
+     * @param device_model Device model identifier
+     * @param delete_existing If true, deletes existing device ID first
+     * @param callback Called when login completes
+     */
+    void login_device_id_with_model(const std::string& display_name, 
+                                     const std::string& device_model,
+                                     bool delete_existing,
+                                     AuthCallback callback);
+    
+    /**
      * Login with Developer credentials.
      * Uses Developer Authentication Tool from Epic.
      * 
@@ -129,9 +154,11 @@ private:
     // Internal login flow helpers
     void connect_login(AuthCallback callback);
     void create_device_id(const std::string& display_name, AuthCallback callback);
+    void delete_device_id_then_create(const std::string& display_name, AuthCallback callback);
     
     bool m_logged_in = false;
     std::string m_display_name;
+    std::string m_device_model;
     EOS_ProductUserId m_product_user_id = nullptr;
     EOS_EpicAccountId m_epic_account_id = nullptr;
     

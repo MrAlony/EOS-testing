@@ -17,6 +17,7 @@
 #include <vector>
 #include <functional>
 #include <unordered_map>
+#include <optional>
 
 #ifndef EOS_STUB_MODE
     #include <eos_sdk.h>

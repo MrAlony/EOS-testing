@@ -86,7 +86,7 @@ struct MatchmakingCriteria {
  */
 using MatchFoundCallback = std::function<void(const SessionInfo& session)>;
 using MatchmakingCallback = std::function<void(bool success, const std::string& error)>;
-using SessionCallback = std::function<void(bool success, const SessionInfo& session)>;
+using SessionCallback = std::function<void(bool success, const SessionInfo& session, const std::string& error)>;
 
 /**
  * Matchmaking Manager

@@ -8,4 +8,5 @@ target_link_libraries(eos_simple_lobby PRIVATE
     eos_auth
     eos_lobby
     eos_p2p
+    eos_voice
 )

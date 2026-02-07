@@ -131,9 +131,18 @@ int main() {
 ```cpp
 auto& auth = eos_testing::AuthManager::instance();
 
+// Simple login
 auth.login_device_id("PlayerName", [](const eos_testing::AuthResult& result) {
     if (result.success) {
         std::cout << "Logged in as: " << result.display_name << "\n";
+    }
+});
+
+// Advanced login for same-machine testing (ensures unique identity)
+bool delete_existing = true;
+auth.login_device_id_with_model("PlayerName", "HostPC", delete_existing, [](const eos_testing::AuthResult& result) {
+    if (result.success) {
+        std::cout << "Logged in with unique ID: " << result.product_user_id << "\n";
     }
 });
 ```

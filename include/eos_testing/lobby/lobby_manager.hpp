@@ -88,6 +88,7 @@ struct LobbySearchResult {
  */
 struct CreateLobbyOptions {
     std::string lobby_name = "My Lobby";
+    std::string bucket_id = "default:region";  // Required by EOS: "game_mode:region" format
     uint32_t max_members = 8;
     LobbyPermission permission = LobbyPermission::PublicAdvertised;
     bool allow_join_in_progress = true;
@@ -150,11 +151,13 @@ public:
     /**
      * Search for public lobbies.
      * 
+     * @param bucket_id Bucket to search in (must match lobby's bucket_id)
      * @param max_results Maximum number of results to return
      * @param filters Optional attribute filters (key-value pairs)
      * @param callback Called with search results
      */
-    void search_lobbies(uint32_t max_results,
+    void search_lobbies(const std::string& bucket_id,
+                        uint32_t max_results,
                         const std::unordered_map<std::string, std::string>& filters,
                         SearchLobbyCallback callback);
     
@@ -223,8 +226,8 @@ public:
     bool all_members_ready() const;
     
     // Event callbacks - set these to receive lobby events
-    MemberJoinCallback on_member_join;
-    MemberLeaveCallback on_member_leave;
+    MemberJoinCallback on_member_joined;
+    MemberLeaveCallback on_member_left;
     LobbyUpdateCallback on_lobby_updated;
     std::function<void(const std::string& sender, const std::string& message)> on_chat_message;
 
@@ -237,6 +240,7 @@ private:
     
     std::optional<LobbyInfo> m_current_lobby;
     bool m_callbacks_registered = false;
+    std::string m_pending_join_lobby_id;
 };
 
 } // namespace eos_testing

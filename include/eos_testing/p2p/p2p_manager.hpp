@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <queue>
 #include <mutex>
+#include <optional>
 
 #ifndef EOS_STUB_MODE
     #include <eos_sdk.h>

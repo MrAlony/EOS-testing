@@ -27,11 +27,11 @@ void setup_callbacks() {
     auto& p2p = P2PManager::instance();
     
     // Lobby callbacks
-    lobby.on_member_join = [](const std::string& lobby_id, const LobbyMember& member) {
+    lobby.on_member_joined = [](const std::string& lobby_id, const LobbyMember& member) {
         std::cout << "[LOBBY] Player joined: " << member.display_name << "\n";
     };
     
-    lobby.on_member_leave = [](const std::string& lobby_id, EOS_ProductUserId user_id) {
+    lobby.on_member_left = [](const std::string& lobby_id, EOS_ProductUserId user_id) {
         std::cout << "[LOBBY] Player left\n";
     };
     

@@ -326,13 +326,29 @@ uint32_t P2PManager::receive_packets(uint32_t max_packets) {
         if (result == EOS_EResult::EOS_Success) {
             packet.data.resize(bytes_received);
             
-            // Update stats
+            // Check if this is a new peer we haven't seen before
+            bool is_new_peer = false;
             {
                 std::lock_guard<std::mutex> lock(m_connections_mutex);
                 auto it = m_connections.find(packet.sender);
                 if (it != m_connections.end()) {
                     it->second.bytes_received += bytes_received;
+                } else {
+                    // New peer! Add them to connections
+                    std::cout << "[P2P] New peer detected from received packet - adding to connections\n";
+                    PeerConnection conn;
+                    conn.peer_id = packet.sender;
+                    conn.status = ConnectionStatus::Connected;
+                    conn.bytes_received = bytes_received;
+                    m_connections[packet.sender] = conn;
+                    is_new_peer = true;
                 }
+            }
+            
+            // Trigger connection callback for new peers
+            if (is_new_peer && on_connection_established) {
+                std::cout << "[P2P] Triggering on_connection_established for new peer\n";
+                on_connection_established(packet.sender, ConnectionStatus::Connected);
             }
             
             if (on_packet_received) {
@@ -445,13 +461,13 @@ void P2PManager::unregister_callbacks() {
 }
 
 void P2PManager::handle_connection_request(EOS_ProductUserId peer_id) {
-    std::cout << "[P2P] Connection request from peer\n";
+    std::cout << "[P2P] >>> Connection REQUEST callback triggered! <<<\n";
     // Auto-accept for now
     accept_connections(peer_id);
 }
 
 void P2PManager::handle_connection_established(EOS_ProductUserId peer_id) {
-    std::cout << "[P2P] Connection established with peer\n";
+    std::cout << "[P2P] >>> Connection ESTABLISHED callback triggered! <<<\n";
     
     {
         std::lock_guard<std::mutex> lock(m_connections_mutex);
@@ -467,7 +483,10 @@ void P2PManager::handle_connection_established(EOS_ProductUserId peer_id) {
     }
     
     if (on_connection_established) {
+        std::cout << "[P2P] Calling on_connection_established callback\n";
         on_connection_established(peer_id, ConnectionStatus::Connected);
+    } else {
+        std::cout << "[P2P] WARNING: on_connection_established callback is NULL!\n";
     }
 }
 
