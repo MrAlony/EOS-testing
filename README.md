@@ -1,4 +1,4 @@
-# EOS Testing Project
+# EOS P2P Example Project
 
 A pure C++ test project for Epic Online Services (EOS) P2P/Relay functionality. This project proves that EOS networking works for Crab Game-style multiplayer party games.
 
@@ -13,11 +13,11 @@ A pure C++ test project for Epic Online Services (EOS) P2P/Relay functionality. 
 ## Project Structure
 
 ```
-EOS-testing/
+EOS-P2P-Example/
 ├── CMakeLists.txt              # Main build configuration
 ├── include/
-│   └── eos_testing/
-│       ├── eos_testing.hpp     # Main include header
+│   └── eos_p2p_example/
+│       ├── eos_p2p_example.hpp # Main include header
 │       ├── core/
 │       │   └── platform.hpp    # EOS SDK initialization
 │       ├── auth/
@@ -114,10 +114,10 @@ If you don't have the EOS SDK installed, the project builds in **stub mode**. Al
 ### Basic Initialization
 
 ```cpp
-#include "eos_testing/eos_testing.hpp"
+#include "eos_p2p_example/eos_p2p_example.hpp"
 
 int main() {
-    eos_testing::PlatformConfig config;
+    eos_p2p_example::PlatformConfig config;
     config.product_name = "My Game";
     config.product_version = "1.0.0";
     config.product_id = "xxx";
@@ -126,27 +126,27 @@ int main() {
     config.client_id = "xxx";
     config.client_secret = "xxx";
     
-    eos_testing::initialize(config, [](bool success, const std::string& msg) {
+    eos_p2p_example::initialize(config, [](bool success, const std::string& msg) {
         std::cout << "EOS: " << msg << "\n";
     });
     
     // Game loop
     while (running) {
-        eos_testing::tick();  // Must call every frame!
+        eos_p2p_example::tick();  // Must call every frame!
         // ... your game code ...
     }
     
-    eos_testing::shutdown();
+    eos_p2p_example::shutdown();
 }
 ```
 
 ### Login with Device ID
 
 ```cpp
-auto& auth = eos_testing::AuthManager::instance();
+auto& auth = eos_p2p_example::AuthManager::instance();
 
 // Simple login
-auth.login_device_id("PlayerName", [](const eos_testing::AuthResult& result) {
+auth.login_device_id("PlayerName", [](const eos_p2p_example::AuthResult& result) {
     if (result.success) {
         std::cout << "Logged in as: " << result.display_name << "\n";
     }
@@ -154,7 +154,7 @@ auth.login_device_id("PlayerName", [](const eos_testing::AuthResult& result) {
 
 // Advanced login for same-machine testing (ensures unique identity)
 bool delete_existing = true;
-auth.login_device_id_with_model("PlayerName", "HostPC", delete_existing, [](const eos_testing::AuthResult& result) {
+auth.login_device_id_with_model("PlayerName", "HostPC", delete_existing, [](const eos_p2p_example::AuthResult& result) {
     if (result.success) {
         std::cout << "Logged in with unique ID: " << result.product_user_id << "\n";
     }
@@ -164,10 +164,10 @@ auth.login_device_id_with_model("PlayerName", "HostPC", delete_existing, [](cons
 ### Create and Join Lobbies
 
 ```cpp
-auto& lobby = eos_testing::LobbyManager::instance();
+auto& lobby = eos_p2p_example::LobbyManager::instance();
 
 // Host creates lobby
-eos_testing::CreateLobbyOptions options;
+eos_p2p_example::CreateLobbyOptions options;
 options.lobby_name = "Fun Game!";
 options.max_members = 8;
 options.attributes["map"] = "arena";
@@ -185,16 +185,16 @@ lobby.join_lobby("lobby-id-here", [](bool success, const auto& info, const auto&
 ### P2P Networking
 
 ```cpp
-auto& p2p = eos_testing::P2PManager::instance();
+auto& p2p = eos_p2p_example::P2PManager::instance();
 
 // Initialize
-eos_testing::P2PConfig config;
+eos_p2p_example::P2PConfig config;
 config.socket_name = "GameSocket";
 p2p.initialize(config);
 p2p.accept_connections();
 
 // Set up packet handler
-p2p.on_packet_received = [](const eos_testing::IncomingPacket& packet) {
+p2p.on_packet_received = [](const eos_p2p_example::IncomingPacket& packet) {
     // Handle game data
 };
 
@@ -204,11 +204,11 @@ PlayerPos pos = {10.0f, 5.0f, 20.0f};
 
 // Unreliable for position updates (fast, may drop)
 p2p.broadcast_packet(&pos, sizeof(pos), 0, 
-    eos_testing::PacketReliability::UnreliableUnordered);
+    eos_p2p_example::PacketReliability::UnreliableUnordered);
 
 // Reliable for important events (guaranteed delivery)
 p2p.send_packet(peer_id, &event, sizeof(event), 1,
-    eos_testing::PacketReliability::ReliableOrdered);
+    eos_p2p_example::PacketReliability::ReliableOrdered);
 
 // Process incoming (call every frame)
 p2p.receive_packets();
@@ -217,7 +217,7 @@ p2p.receive_packets();
 ### Voice Chat
 
 ```cpp
-auto& voice = eos_testing::VoiceManager::instance();
+auto& voice = eos_p2p_example::VoiceManager::instance();
 
 voice.initialize();
 voice.join_room("lobby-123", [](bool success, const std::string& room) {
@@ -225,7 +225,7 @@ voice.join_room("lobby-123", [](bool success, const std::string& room) {
 });
 
 // Push-to-talk
-voice.set_input_mode(eos_testing::VoiceInputMode::PushToTalk);
+voice.set_input_mode(eos_p2p_example::VoiceInputMode::PushToTalk);
 voice.set_push_to_talk(key_pressed);  // Call when PTT key state changes
 
 // Mute controls
